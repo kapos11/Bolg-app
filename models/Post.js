@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const PostSchema = new mongoose.Schema(
   {
-    userId: {
+    author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       require: true,
@@ -17,6 +17,11 @@ const PostSchema = new mongoose.Schema(
         publicId: null,
       },
     },
+    groupId: {
+      type: mongoose.Schema.ObjectId,
+      ref: "Group",
+    },
+    isPublic: { type: Boolean, default: true },
     likes: [
       {
         type: mongoose.Schema.ObjectId,

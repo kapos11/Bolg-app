@@ -15,7 +15,7 @@ const fs = require("fs");
  * @access private (only admin)
  */
 const getAllUsers = async (req, res) => {
-  const user = await User.find().select("-password").lean();
+  const user = await User.find();
   if (!user.length) {
     res.status(400).json({ message: "Not user found" });
   }
@@ -30,10 +30,7 @@ const getAllUsers = async (req, res) => {
  * @access private (only admin)
  */
 const getUser = async (req, res) => {
-  const user = await User.findById(req.params.id)
-    .select("-password")
-    .lean()
-    .populate("Posts");
+  const user = await User.findById(req.params.id).populate("Posts");
   if (!user) {
     res.status(404).json({ message: "User Not found" });
   }

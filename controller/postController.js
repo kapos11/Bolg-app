@@ -1,5 +1,5 @@
-const { json } = require("express");
 const Post = require("../models/Post");
+const Group = require("../models/Group");
 const path = require("path");
 const {
   cloudinaryUploadImg,
@@ -17,14 +17,32 @@ const fs = require("fs");
 
 const createPost = async (req, res) => {
   try {
-    const { titel } = req.body;
+    const { titel, groupId } = req.body;
+    if (groupId) {
+      const group = await Group.findById(groupId);
+      console.log(group);
+      if (!group?.members.includes(req.userId)) {
+        return res.status(404).json({ message: "Please join to group first" });
+      }
+    }
     if (!titel) {
       return res.status(400).json({ message: "write something" });
     }
     const post = await Post.create({
-      userId: req.userId,
-      titel: req.body.titel,
+      author: req.userId,
+      titel,
+      groupId: groupId || null,
+      isPublic: !groupId,
     });
+
+    //if group post add to group
+    if (groupId) {
+      await Group.findByIdAndUpdate(groupId, {
+        $push: {
+          posts: post._id,
+        },
+      });
+    }
     res.status(201).json(post);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -40,11 +58,29 @@ const createPost = async (req, res) => {
  */
 
 const getAllPosts = async (req, res) => {
-  const post = await Post.find();
-  if (!post.length) {
-    return res.status(40).json({ message: "Post Not Found" });
+  const { userId, groupId } = req.body;
+
+  let filter = {};
+
+  if (groupId) {
+    const group = await Group.findById(groupId);
+    if (!group?.members.includes(req.userId)) {
+      return res.status(404).json({ message: "Please join to group first" });
+    }
+    filter.groupId = groupId;
+    console.log(`filter . groupid = ${filter}`);
+  } else if (userId) {
+    filter.author = userId;
+    console.log(`filter . author = ${filter}`);
+    if (userId !== req.userId) {
+      filter.isPublic = true;
+    }
+  } else {
+    filter.isPublic = true;
+    console.log(filter);
   }
-  res.status(200).json(post);
+  const posts = await Post.find(filter);
+  res.status(200).json(posts);
 };
 
 /**
@@ -82,7 +118,7 @@ const updatePost = async (req, res) => {
     if (!post) {
       return res.status(404).json({ message: "the post not found" });
     }
-    if (post.userId.toString() !== userId) {
+    if (post.author.toString() !== userId) {
       return res.status(404).json({ message: "cant access this post" });
     }
     const updatedPost = await Post.findByIdAndUpdate(
@@ -116,7 +152,7 @@ const deletePost = async (req, res) => {
     if (!post) {
       return res.status(404).json({ message: "the post not found" });
     }
-    if (!req.user.isAdmin || post.userId.toString() !== userId) {
+    if (post.userId.toString() !== userId) {
       return res.status(404).json({ message: "cant access this post" });
     }
     await Post.findByIdAndDelete(postId);

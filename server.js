@@ -19,6 +19,12 @@ app.use(cors({ corsOption }));
 app.use(cookieParser());
 app.use(express.json());
 
+app.use("/auth", require("./routes/authRoutes"));
+app.use("/post", require("./routes/postRoutes"));
+app.use("/users", require("./routes/userRoutes"));
+app.use("/comment", require("./routes/commentRoutes"));
+app.use("/group", require("./routes/groupRoutes"));
+
 //404 Page To UnKnow routes
 app.use("/", express.static(path.join(__dirname, "public")));
 app.all("*", (req, res) => {
@@ -31,12 +37,6 @@ app.all("*", (req, res) => {
     res.type("txt").send("404 Not Found");
   }
 });
-
-app.use("/auth", require("./routes/authRoutes"));
-app.use("/post", require("./routes/postRoutes"));
-app.use("/users", require("./routes/userRoutes"));
-app.use("/comment", require("./routes/commentRoutes"));
-
 //if connect done
 mongoose.connection.once("open", () => {
   console.log("connection to database is done");

@@ -21,6 +21,9 @@ const userSchema = new mongoose.Schema(
       type: String,
       require: true,
     },
+    passwordResetCode: String,
+    passwordResetExpires: Date,
+    passwordResetVerified: Boolean,
     profilePhoto: {
       type: Object,
       default: {

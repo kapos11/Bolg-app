@@ -1,4 +1,3 @@
-const { json } = require("express");
 const Comment = require("../models/Comment");
 const path = require("path");
 const {
@@ -60,9 +59,9 @@ const getCommentById = async (req, res) => {
   if (!comment) {
     return res.status(40).json({ message: "Not comment found" });
   }
-  if (!req.user.isAdmin) {
-    return res.status(404).json({ message: "cant access this comment" });
-  }
+  // if (!req.user.isAdmin) {
+  //   return res.status(404).json({ message: "cant access this comment" });
+  // }
   res.status(200).json(comment);
 };
 
@@ -80,7 +79,7 @@ const updateComment = async (req, res) => {
     if (!comment) {
       return res.status(404).json({ message: "the comment not found" });
     }
-    if (!req.user.isAdmin || comment.userId.toString() !== req.userId) {
+    if (comment.userId.toString() !== req.userId) {
       return res.status(404).json({ message: "cant access this comment" });
     }
     const updatedComment = await Comment.findByIdAndUpdate(
@@ -114,7 +113,7 @@ const deleteComment = async (req, res) => {
       return res.status(404).json({ message: "the comment not found" });
     }
 
-    if (!req.user.isAdmin || comment.userId.toString() !== req.userId) {
+    if (comment.userId.toString() !== req.userId) {
       return res.status(404).json({ message: "cant access this comment" });
     }
 
